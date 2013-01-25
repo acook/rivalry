@@ -1,0 +1,76 @@
+#!/usr/bin/env ruby
+
+require 'pathname'
+require 'pry'
+
+class Pathname
+  alias_method :each, :each_child
+  alias_method :exists?, :exist?
+end
+
+def usage
+  puts "usage: #{$0} path/to/search/for/duplicates"
+  exit 1
+end
+
+def run path
+  files = scan path
+
+  puts nil, files.flatten.length
+end
+
+def scan path
+  files = []
+
+  path.each do |file|
+    next if ignore? file
+
+    if file.directory? then
+      files << scan(file)
+    else
+      files << file
+
+      if $verbose then
+        puts file.inspect
+      else
+        print '.' unless $silent
+      end
+    end
+  end
+
+  files.compact
+end
+
+def ignore? file
+  return true if invalid? file
+  fullpath = file.realpath.to_s
+
+  ignores.inject(false) do |ignored, name, pattern|
+    if fullpath =~ pattern then
+      puts "#### IGNORED: #{name}:#{pattern} - #{file}" if $verbose
+      ignored || true
+    else
+      ignored || false
+    end
+  end
+end
+
+def invalid? file
+  !(valid? file)
+end
+
+def valid? file
+  file.exists?
+end
+
+def ignores
+  [
+    /(\.git|\.hg|\.svn)/
+  ]
+end
+
+path = ARGV.first || usage
+
+paths = Pathname.glob File.join(path, '**', '*')
+
+run paths
