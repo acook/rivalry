@@ -3,6 +3,7 @@
 require 'find'
 require 'pathname'
 require 'pry'
+require 'digest'
 
 class Pathname
   alias_method :each, :each_child
@@ -16,7 +17,7 @@ end
 
 def scan pathname
   size  = 0
-  files = []
+  files = Hash.new
 
   pathname.find do |path|
     file = Pathname.new path
@@ -27,13 +28,20 @@ def scan pathname
         Find.prune
       end
     elsif valid? file then
-      files << file
+      hash = Digest::SHA256.file file
+
+      files[hash.to_s] ||= Array.new
+      files[hash.to_s] << file
+
       size += file.size
     end
   end
 
+  duplicate_files = files.select{|hash, file_list| file_list.length > 1 }
+
   puts "-- Size  : #{humanize size}"
   puts "-- Count : #{files.length} files"
+  puts "-- Dupes : #{duplicate_files.length} files"
   files
 end
 
@@ -45,10 +53,8 @@ def run path
 end
 
 def skip? path
-  [
-    File.basename(path) == ?.,
-    path.to_s.split(File::Separator).last =~ ignores[:scm]
-  ].find{|i| i} && true
+  basename = File.basename path
+  ignores.find{|name, pattern| basename =~ pattern} && true
 end
 
 def invalid? file
@@ -61,7 +67,8 @@ end
 
 def ignores
   {
-    scm: /(\.git|\.hg|\.svn)/
+    dir: /^\.$/,
+    scm: /^(\.git|\.hg|\.svn|\.gitkeep)$/
   }
 end
 
