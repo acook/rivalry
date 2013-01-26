@@ -32,12 +32,14 @@ def width
 end
 
 def scan pathname
+
+  puts "Scanning all files..."
+
   total_size  = 0
   total_count = 0
   all_files   = Array.new
   file_sizes  = Hash.new
 
-  puts "Scanning all files..."
   pathname.find do |path|
     file = Pathname.new path
 
@@ -68,38 +70,32 @@ def scan pathname
   puts "-- Total Count : #{total_count} files"
 
   similar_files = file_sizes.map{|size, file_list| file_list if file_list.length > 1 }.flatten.compact
-  puts "-- Similar     : #{similar_files.length} files with the same size"
+  total_similar = similar_files.length
+
+  puts "-- Similar     : #{total_similar} files with the same size"
 
   puts
   puts "Determining duplicates..."
 
   similar_count = 0
-  progress_count = 0
   file_hashes = Hash.new
-  file_sizes.each do |size, files|
-    if files.length < 2 then
-      progress_count += files.length
-      next
-    end
 
-    similar_count += files.length
+  similar_files.each do |file|
+    similar_count += 1
 
-    files.each do |file|
-      progress_count += 1
-      out "-- HASHING (#{progress_count}/#{total_count}): #{file}"
+    out "-- HASHING (#{similar_count}/#{total_similar}): #{file}"
 
-      hash = Digest::SHA256.file(file).to_s
+    hash = Digest::SHA256.file(file).to_s
 
-      file_hashes[hash] ||= Array.new
-      file_hashes[hash] << file
-    end
+    file_hashes[hash] ||= Array.new
+    file_hashes[hash] << file
   end
 
   duplicate_files = file_hashes.map{|hash, file_list| file_list if file_list.length > 1 }.flatten.compact
 
   out
-  puts "-- Similar     : #{similar_files.length} files with the same size"
   puts "-- Dupes Count : #{duplicate_files.length} files"
+  puts
 
   duplicate_files
 end
