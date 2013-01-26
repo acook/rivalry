@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'find'
 require 'pathname'
 require 'pry'
 
@@ -13,46 +14,41 @@ def usage
   exit 1
 end
 
-def run path
-  files = scan path
-
-  puts nil, files.flatten.length
-end
-
-def scan path
+def scan pathname
+  size  = 0
   files = []
 
-  path.each do |file|
-    next if ignore? file
+  pathname.find do |path|
+    file = Pathname.new path
 
     if file.directory? then
-      files << scan(file)
-    else
-      files << file
-
-      if $verbose then
-        puts file.inspect
-      else
-        print '.' unless $silent
+      if skip?(file)
+        puts "-- SKIPPING: #{file}" if $verbose
+        Find.prune
       end
+    elsif valid? file then
+      files << file
+      size += file.size
     end
   end
 
-  files.compact
+  puts "-- Size  : #{humanize size}"
+  puts "-- Count : #{files.length} files"
+  files
 end
 
-def ignore? file
-  return true if invalid? file
-  fullpath = file.realpath.to_s
-
-  ignores.inject(false) do |ignored, name, pattern|
-    if fullpath =~ pattern then
-      puts "#### IGNORED: #{name}:#{pattern} - #{file}" if $verbose
-      ignored || true
-    else
-      ignored || false
-    end
+def run path
+  files = scan Pathname.new(path)
+  files.each do |file|
+    #puts file.to_s
   end
+end
+
+def skip? path
+  [
+    File.basename(path) == ?.,
+    path.to_s.split(File::Separator).last =~ ignores[:scm]
+  ].find{|i| i} && true
 end
 
 def invalid? file
@@ -64,13 +60,18 @@ def valid? file
 end
 
 def ignores
-  [
-    /(\.git|\.hg|\.svn)/
-  ]
+  {
+    scm: /(\.git|\.hg|\.svn)/
+  }
+end
+
+BYTE_UNITS =[[1073741824, "GB"], [1048576, "MB"], [1024, "KB"], [1, "B"], [-1, 'B']]
+
+def humanize bytes
+  unit = BYTE_UNITS.find{|u| bytes > u[0] }
+  "#{bytes / unit[0]} #{unit[1]}"
 end
 
 path = ARGV.first || usage
 
-paths = Pathname.glob File.join(path, '**', '*')
-
-run paths
+run path
