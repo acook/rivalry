@@ -16,9 +16,42 @@ def usage
 end
 
 def out text = ''
+  return if $silent
+
+  if $verbose then
+    puts text
+  else
+    puts text[0..(width - 1)]
+  end
+end
+
+def progress type, file, count = nil, total = nil
+  return if $silent
+
+  if count && total then
+    tally = " (#{count}/#{total})"
+  elsif count then
+    tally = " (#{count})"
+  else
+    tally = ''
+  end
+
+  text = "-- #{type}#{tally}: #{file}"
+
+  if $verbose then
+    puts text
+  else
+    clear_line
+    print text[0..(width - 1)]
+  end
+end
+
+def clear_line
+  return if $silent
+
   clear_line = "\e[2K"
   start_of_line = "\e[0G"
-  print start_of_line, clear_line, text[0..(width - 1)]
+  print start_of_line, clear_line
 end
 
 def width
@@ -33,69 +66,71 @@ end
 
 def scan pathname
 
-  puts "Scanning all files..."
+  out "Scanning all files..."
 
   total_size  = 0
   total_count = 0
   all_files   = Array.new
-  file_sizes  = Hash.new
+  file_sizes  = Hash.new { |hash, k| hash[k] = [] }
 
   pathname.find do |path|
     file = Pathname.new path
 
     if file.directory? then
-      if skip?(file)
-        out "-- SKIPPING: #{file}"
+      if skip? file then
+        progress 'SKIP DIR', file
         Find.prune
       else
-        out "-- DIRECTORY: #{file}"
+        progress 'DIRECTORY', file
         all_files << file
       end
     elsif valid? file then
-      out "-- FILE: #{file}"
+      if want? file then
+        progress 'FILE', file
 
-      size = file.size
+        size = file.size
 
-      file_sizes[size] ||= Array.new
-      file_sizes[size] << file
+        file_sizes[size] << file
 
-      all_files << file
-      total_size += size
-      total_count += 1
+        all_files << file
+        total_size += size
+        total_count += 1
+      else
+        progress 'SKIP FILE', file
+      end
     end
   end
 
-  out
-  puts "-- Total Size  : #{humanize total_size}"
-  puts "-- Total Count : #{total_count} files"
+  clear_line
+  out "-- Total Size  : #{humanize total_size}"
+  out "-- Total Count : #{total_count} files"
 
   similar_files = file_sizes.map{|size, file_list| file_list if file_list.length > 1 }.flatten.compact
   total_similar = similar_files.length
 
-  puts "-- Similar     : #{total_similar} files with the same size"
+  out "-- Similar     : #{total_similar} files with the same size"
 
-  puts
-  puts "Determining duplicates..."
+  out
+  out "Determining duplicates..."
 
   similar_count = 0
-  file_hashes = Hash.new
+  file_hashes = Hash.new { |hash, k| hash[k] = [] }
 
   similar_files.each do |file|
     similar_count += 1
 
-    out "-- HASHING (#{similar_count}/#{total_similar}): #{file}"
+    progress 'HASHING', file, similar_count, total_similar
 
     hash = Digest::SHA256.file(file).to_s
 
-    file_hashes[hash] ||= Array.new
     file_hashes[hash] << file
   end
 
   duplicate_files = file_hashes.map{|hash, file_list| file_list if file_list.length > 1 }.flatten.compact
 
   out
-  puts "-- Dupes Count : #{duplicate_files.length} files"
-  puts
+  out "-- Dupes Count : #{duplicate_files.length} files"
+  out
 
   duplicate_files
 end
@@ -105,6 +140,11 @@ def run path
   files.each do |file|
     #puts file.to_s
   end
+end
+
+def want? path
+  extension = File.extname path
+  wants.find{|name, pattern| extension =~ pattern} && true
 end
 
 def skip? path
@@ -123,7 +163,14 @@ end
 def ignores
   {
     dir: /^\.$/,
-    scm: /^(\.git|\.hg|\.svn|\.gitkeep)$/
+    scm: /^\.(git|hg|svn|gitkeep)$/
+  }
+end
+
+def wants
+  {
+    audio:  /^\.(mp3|ogg|flac|wav|aiff|mid)$/i,
+    images: /^\.(png|jpg|gif|bmp|tga|jpeg|tif|tiff)/i
   }
 end
 
@@ -136,4 +183,4 @@ end
 
 path = ARGV.first || usage
 
-run path
+run File.expand_path path
