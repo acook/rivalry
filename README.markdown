@@ -44,6 +44,31 @@ Determining duplicates...
 /Users/acook/Dropbox/Projects/Negutyv Xeiro/Audio/Cytokine Storm/alexcyto/Cytokine Storm m.mp3
 ```
 
+What I do is capture the buffer in a file and delete the lines above the actual filenames:
+
+`grep "^/Users/acook/Dropbox/Projects" rivalry_output.txt > duplicate_files.txt`
+
+Then pull out the files I want to delete based on some sort of pattern:
+
+`grep "alexcyto" duplicate_files.txt > files_to_delete.txt`
+
+I backup the files I'm about to remove (just in case):
+
+```
+mkdir dups
+rsync -av --files-from=files_to_delete.txt / ./dups
+```
+
+And then I remove the files:
+
+`xargs rm -v < files_to_delete.txt`
+
+or using [GNU parallel](http://en.wikipedia.org/wiki/GNU_parallel):
+
+`cat files_to_delete.txt | parallel rm -v`
+
+Done!
+
 ## Contributing
 
 1. Fork it
