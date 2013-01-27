@@ -10,7 +10,7 @@ module Rivalry
       out "Determining duplicates..."
 
       similar_count = 0
-      file_hashes = Hash.new { |hash, k| hash[k] = [] }
+      file_hashes = FilesWithData.new
 
       similar_files.each do |file|
         similar_count += 1

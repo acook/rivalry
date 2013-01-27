@@ -1,7 +1,7 @@
 module Rivalry
   class FindFiles
     def initialize pathname, do_want = {}, do_not_want = {}
-      @pathname = Pathname.new File.expand_path(pathname)
+      @pathname = pathname
       @do_want = do_want
       @do_not_want = do_not_want
     end
@@ -11,7 +11,7 @@ module Rivalry
       self.size  = 0
       self.count = 0
 
-      files_with_sizes  = Hash.new { |hash, k| hash[k] = [] }
+      files_with_sizes = FilesWithData.new
 
       pathname.find do |file|
 

@@ -3,6 +3,7 @@ require 'pry' rescue LoadError
 require 'rivalry/version'
 require 'rivalry/display'
 require 'rivalry/scanner'
+require 'rivalry/files_with_data'
 require 'rivalry/find_files'
 require 'rivalry/hash_files'
 
