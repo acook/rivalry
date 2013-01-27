@@ -22,7 +22,7 @@ And then execute:
 
 On the commandline the most basic usage is:
 
-```bash
+```ruby
 $ rivalry ~/directory/with/duplicates
 ```
 
@@ -30,7 +30,7 @@ It will display the duplicate files on the screen, which can then be grepped or 
 
 Example output:
 
-```bash
+```ruby
 $ rivalry ..
 Scanning all files...
 -- Total Size  : 173 MB
