@@ -7,22 +7,5 @@ rescue LoadError
   require 'rivalry'
 end
 
-include Rivalry::Display
+Rivalry.run ARGV
 
-class Pathname
-  alias_method :each, :each_child
-  alias_method :exists?, :exist?
-end
-
-def run path
-  scanner = Rivalry::Scanner.new path
-  files = scanner.scan
-
-  files.each do |file|
-    #puts file.to_s
-  end
-end
-
-path = ARGV.first || usage
-
-run path

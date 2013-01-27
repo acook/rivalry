@@ -1,5 +1,5 @@
 module Rivalry
-  class HashFiles
+  class HashFiles < Base
     def initialize similar_files
       @similar_files = similar_files
     end

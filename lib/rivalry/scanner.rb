@@ -3,9 +3,9 @@ require 'pathname'
 require 'digest'
 
 module Rivalry
-  class Scanner
+  class Scanner < Base
     def initialize pathname
-      @pathname = Pathname.new File.expand_path(pathname)
+      @pathname = FilePath.new File.expand_path(pathname)
     end
     attr :pathname
 

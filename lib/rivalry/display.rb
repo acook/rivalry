@@ -1,10 +1,18 @@
 module Rivalry
   module Display
-    def self.included base
+    def self.included object
       unless $silent then
-        base.send :include, Methods
+        object.send :include, Methods
       else
-        base.send :include, NoopMethods
+        object.send :include, NoopMethods
+      end
+    end
+
+    def self.extended object
+      unless $silent then
+        object.send :extend, Methods
+      else
+        object.send :extend, NoopMethods
       end
     end
 

@@ -1,5 +1,5 @@
 module Rivalry
-  class FindFiles
+  class FindFiles < Base
     def initialize pathname, do_want = {}, do_not_want = {}
       @pathname = pathname
       @do_want = do_want
