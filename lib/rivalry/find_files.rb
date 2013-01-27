@@ -16,14 +16,14 @@ module Rivalry
       pathname.find do |file|
 
         if file.directory? then
-          if skip? file then
+          if do_not_want? file then
             progress 'SKIP DIR', file
             Find.prune
           else
             progress 'DIRECTORY', file
           end
         elsif valid? file then
-          if want? file then
+          if do_want? file then
             progress 'FILE', file
 
             file_size = file.size
@@ -46,12 +46,12 @@ module Rivalry
 
     attr_writer :count, :size
 
-    def want? path
+    def do_want? path
       extension = File.extname path
       do_want.find{|name, pattern| extension =~ pattern} && true
     end
 
-    def skip? path
+    def do_not_want? path
       basename = File.basename path
       do_not_want.find{|name, pattern| basename =~ pattern} && true
     end
