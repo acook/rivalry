@@ -21,6 +21,12 @@ module Rivalry
 
         file_hashes[hash] << file
       end
+
+      file_hashes
+    end
+
+    def total_similar
+      similar_files.length
     end
   end
 end

@@ -17,6 +17,7 @@ end
 def run path
   scanner = Rivalry::Scanner.new path
   files = scanner.scan
+
   files.each do |file|
     #puts file.to_s
   end
