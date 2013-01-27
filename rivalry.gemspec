@@ -8,9 +8,9 @@ Gem::Specification.new do |gem|
   gem.version       = Rivalry::VERSION
   gem.authors       = ["Anthony Cook"]
   gem.email         = ["anthonymichaelcook@gmail.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
-  gem.homepage      = ""
+  gem.description   = %q{The (fast!) duplicate file finder for Ruby! Supports media file and ignoring SCM directories.}
+  gem.summary       = %q{The (fast!) duplicate file finder for Ruby!}
+  gem.homepage      = "https://github.com/acook/rivalry#readme"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
