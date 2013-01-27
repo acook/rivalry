@@ -58,6 +58,13 @@ module Rivalry
         end
       end
 
+      BYTE_UNITS =[[1073741824, 'GB'], [1048576, 'MB'], [1024, 'KB'], [-1, 'B']]
+
+      def humanize bytes
+        unit = BYTE_UNITS.find{|u| bytes > u[0] }
+        "#{bytes / unit[0]} #{unit[1]}"
+      end
+
     end
 
     module NoopMethods
