@@ -18,6 +18,15 @@ module Rivalry
 
     module Methods
 
+      TIOCGWINSZ = case RbConfig::CONFIG['host_os']
+      when /darwin|mac os/
+        0x40087468
+      when /linux/
+        0x5413
+      else
+        0x00
+      end
+
       def usage
         puts "usage: #{$0} path/to/search/for/duplicates"
         exit 1
@@ -57,9 +66,8 @@ module Rivalry
       end
 
       def width
-        tiocgwinsz = 0x40087468
         str = [0, 0, 0, 0].pack('SSSS')
-        if $stdin.ioctl(tiocgwinsz, str) >= 0 then
+        if $stdin.ioctl(TIOCGWINSZ, str) >= 0 then
           str.unpack('SSSS')[1]
         else
           80
